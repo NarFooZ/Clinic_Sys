@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الاستقبال - عيادات الشفاء</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ============================================================
+   DESIGN SYSTEM - لون أزرق طبي نظيف وعصري
+============================================================ */
+:root {
+  --primary: #0ea5e9;
+  --primary-dark: #0284c7;
+  --primary-light: #e0f2fe;
+  --accent: #06b6d4;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --dark: #0f172a;
+  --dark2: #1e293b;
+  --mid: #334155;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --bg: #f0f9ff;
+  --card: #ffffff;
+  --sidebar-w: 260px;
+  --radius: 14px;
+  --shadow: 0 2px 8px rgba(14,165,233,.12);
+  --shadow-lg: 0 8px 32px rgba(14,165,233,.18);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--dark);direction:rtl}
+.hidden{display:none!important}
+
+/* ============ LOGIN ============ */
+#loginPage{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0f172a 0%,#0c4a6e 50%,#0ea5e9 100%);
+  position:relative;overflow:hidden;
+}
+#loginPage::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230ea5e9' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.login-card{
+  background:rgba(255,255,255,.97);border-radius:24px;padding:48px 40px;
+  width:100%;max-width:440px;box-shadow:0 32px 80px rgba(0,0,0,.35);
+  position:relative;z-index:1;
+}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo .icon-wrap{
+  width:80px;height:80px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  border-radius:20px;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;box-shadow:0 8px 24px rgba(14,165,233,.4);
+}
+.login-logo .icon-wrap i{font-size:2rem;color:white}
+.login-logo h1{font-size:1.6rem;color:var(--dark);font-weight:700}
+.login-logo p{color:var(--muted);font-size:.9rem;margin-top:4px}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;margin-bottom:8px;font-weight:600;font-size:.9rem;color:var(--mid)}
+.form-group input,.form-group select{
+  width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:12px;
+  font-size:.95rem;font-family:inherit;transition:all .2s;background:var(--bg);
+}
+.form-group input:focus,.form-group select:focus{
+  outline:none;border-color:var(--primary);background:#fff;
+  box-shadow:0 0 0 3px rgba(14,165,233,.12);
+}
+.btn{
+  padding:13px 24px;border:none;border-radius:12px;font-size:.95rem;font-weight:600;
+  cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;
+  font-family:inherit;justify-content:center;
+}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;width:100%}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(14,165,233,.4)}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-secondary{background:var(--mid);color:#fff}
+.btn-warning{background:var(--warning);color:#fff}
+.btn-outline{background:transparent;border:2px solid var(--border);color:var(--mid)}
+.btn-sm{padding:8px 16px;font-size:.85rem;border-radius:10px}
+.btn-xs{padding:6px 12px;font-size:.8rem;border-radius:8px}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+
+/* ============ LAYOUT ============ */
+#app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh}
+.sidebar{
+  background:var(--dark2);color:#fff;padding:24px 16px;
+  position:fixed;right:0;top:0;height:100vh;width:var(--sidebar-w);
+  overflow-y:auto;z-index:50;display:flex;flex-direction:column;
+}
+.sidebar-logo{text-align:center;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:20px}
+.sidebar-logo .s-icon{
+  width:56px;height:56px;background:linear-gradient(135deg,var(--primary),var(--accent));
+  border-radius:16px;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 10px;font-size:1.4rem;
+}
+.sidebar-logo h2{font-size:1rem;color:#e2e8f0}
+.sidebar-logo .role{font-size:.78rem;color:#94a3b8;margin-top:4px}
+.nav-section{margin-bottom:8px}
+.nav-label{font-size:.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.08em;padding:0 12px;margin-bottom:6px}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;
+  cursor:pointer;transition:all .2s;color:#94a3b8;font-size:.9rem;margin-bottom:3px;
+}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#e2e8f0}
+.nav-item.active{background:rgba(14,165,233,.2);color:var(--primary);font-weight:600}
+.nav-item i{width:20px;text-align:center;font-size:.95rem}
+.nav-badge{margin-right:auto;background:var(--danger);color:#fff;padding:2px 7px;border-radius:8px;font-size:.72rem}
+.sidebar-footer{margin-top:auto;border-top:1px solid rgba(255,255,255,.08);padding-top:16px}
+.user-chip{
+  display:flex;align-items:center;gap:10px;padding:10px;
+  background:rgba(255,255,255,.05);border-radius:12px;margin-bottom:10px;
+}
+.user-chip .av{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;color:#fff;
+}
+.user-chip .uc-info{font-size:.82rem}
+.user-chip .uc-name{font-weight:600;color:#e2e8f0}
+.user-chip .uc-role{color:#64748b}
+
+/* ============ MAIN ============ */
+.main{margin-right:var(--sidebar-w);padding:28px;background:var(--bg);min-height:100vh}
+.top-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--card);border-radius:var(--radius);padding:18px 24px;
+  box-shadow:var(--shadow);margin-bottom:24px;
+}
+.top-bar h1{font-size:1.3rem;color:var(--dark);font-weight:700}
+.top-bar .tb-right{display:flex;align-items:center;gap:12px}
+.clock-badge{
+  background:var(--primary-light);color:var(--primary-dark);
+  padding:8px 14px;border-radius:10px;font-size:.85rem;font-weight:600;
+  display:flex;align-items:center;gap:6px;
+}
+
+/* ============ CARDS ============ */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin-bottom:24px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.card-header h2{font-size:1.1rem;color:var(--dark);font-weight:700;display:flex;align-items:center;gap:8px}
+.card-header h2 i{color:var(--primary)}
+
+/* ============ STATS ============ */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat{
+  background:var(--card);border-radius:var(--radius);padding:20px;
+  box-shadow:var(--shadow);display:flex;align-items:center;gap:16px;
+  transition:transform .2s;
+}
+.stat:hover{transform:translateY(-3px)}
+.stat .st-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.st-blue{background:#dbeafe;color:#2563eb}
+.st-green{background:#d1fae5;color:#059669}
+.st-orange{background:#fef3c7;color:#d97706}
+.st-red{background:#fee2e2;color:#dc2626}
+.stat .st-val{font-size:1.6rem;font-weight:800;color:var(--dark);line-height:1}
+.stat .st-label{font-size:.82rem;color:var(--muted);margin-top:4px}
+
+/* ============ TABLE ============ */
+.tbl-wrap{overflow-x:auto}
+table.dtbl{width:100%;border-collapse:collapse}
+table.dtbl th{background:#f8fafc;padding:12px 14px;text-align:right;font-size:.83rem;color:var(--muted);font-weight:600;border-bottom:2px solid var(--border)}
+table.dtbl td{padding:14px;border-bottom:1px solid #f1f5f9;color:var(--dark);font-size:.9rem}
+table.dtbl tr:hover td{background:#f8fafc}
+table.dtbl tr:last-child td{border-bottom:none}
+.badge{padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:600;display:inline-block}
+.b-waiting{background:#fef3c7;color:#92400e}
+.b-in_progress{background:#dbeafe;color:#1e40af}
+.b-completed{background:#d1fae5;color:#065f46}
+.b-paid{background:#dcfce7;color:#166534}
+
+/* ============ MODAL ============ */
+.overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.6);
+  display:flex;align-items:center;justify-content:center;
+  z-index:200;backdrop-filter:blur(4px);padding:20px;
+}
+.modal{
+  background:var(--card);border-radius:20px;padding:32px;
+  width:100%;max-width:680px;max-height:90vh;overflow-y:auto;
+  box-shadow:0 32px 80px rgba(0,0,0,.3);animation:slideUp .25s ease;
+}
+.modal-lg{max-width:900px}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.modal-header h2{font-size:1.2rem;color:var(--dark);font-weight:700}
+.close-btn{background:none;border:none;font-size:1.4rem;color:var(--muted);cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.close-btn:hover{background:#fee2e2;color:var(--danger)}
+
+/* ============ PAYMENT PANEL ============ */
+.pay-panel{
+  display:grid;grid-template-columns:1fr 340px;gap:20px;
+  height:calc(100vh - 200px);max-height:680px;
+}
+.proc-list{border:2px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.proc-list .pl-header{padding:14px 16px;background:var(--primary-light);border-bottom:1px solid var(--border)}
+.proc-list .pl-header input{
+  width:100%;border:2px solid var(--border);border-radius:10px;padding:9px 12px;
+  font-family:inherit;font-size:.88rem;
+}
+.proc-list .pl-header input:focus{outline:none;border-color:var(--primary)}
+.proc-items{flex:1;overflow-y:auto}
+.proc-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 16px;border-bottom:1px solid #f1f5f9;cursor:pointer;
+  transition:background .15s;
+}
+.proc-item:hover{background:var(--primary-light)}
+.proc-item .pi-name{font-size:.9rem;font-weight:600;color:var(--dark)}
+.proc-item .pi-price{font-size:.85rem;color:var(--success);font-weight:700}
+.proc-item .pi-clinic{font-size:.75rem;color:var(--muted)}
+
+/* Cart / Receipt side */
+.pay-receipt{display:flex;flex-direction:column;gap:12px}
+.receipt-card{
+  background:linear-gradient(135deg,#f0f9ff,#e0f2fe);
+  border:2px solid var(--border);border-radius:var(--radius);padding:20px;flex:1;overflow-y:auto;
+}
+.receipt-card h3{font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.cart-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 12px;background:white;border-radius:10px;margin-bottom:8px;
+}
+.cart-item .ci-name{font-size:.88rem;font-weight:600}
+.cart-item .ci-price{font-size:.88rem;color:var(--success);font-weight:700}
+.cart-item .ci-del{background:none;border:none;color:var(--danger);cursor:pointer;padding:4px;border-radius:6px}
+.cart-item .ci-del:hover{background:#fee2e2}
+.cart-total{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px;background:var(--primary);color:#fff;border-radius:12px;font-weight:700;font-size:1rem;
+}
+.pmethods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.pm-btn{
+  border:2px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;
+  cursor:pointer;transition:all .2s;background:#fff;
+}
+.pm-btn:hover{border-color:var(--primary)}
+.pm-btn.sel{border-color:var(--primary);background:var(--primary-light)}
+.pm-btn i{font-size:1.2rem;display:block;margin-bottom:4px}
+.pm-btn span{font-size:.75rem;font-weight:600}
+.pm-cash i{color:var(--success)}
+.pm-visa i{color:#1d4ed8}
+.pm-mastercard i{color:#ef4444}
+.pm-mada i{color:var(--success)}
+.pm-apple i{color:var(--dark)}
+.pm-bank i{color:var(--warning)}
+.pm-cliq i{color:#8b5cf6}
+
+/* ============ SEARCH ============ */
+.search-box{position:relative}
+.search-box input{
+  padding:11px 40px 11px 16px;border:2px solid var(--border);border-radius:12px;
+  font-family:inherit;font-size:.9rem;width:280px;transition:all .2s;
+}
+.search-box input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,233,.1)}
+.search-box i{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+
+/* ============ FORM ============ */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fgrid-3{grid-template-columns:1fr 1fr 1fr}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;margin-bottom:7px;font-weight:600;font-size:.85rem;color:var(--mid)}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:11px;
+  font-size:.9rem;font-family:inherit;transition:all .2s;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,233,.1);
+}
+.age-pill{
+  background:#d1fae5;color:#065f46;padding:8px 14px;border-radius:8px;
+  font-weight:700;font-size:.9rem;display:inline-flex;align-items:center;gap:6px;margin-top:6px;
+}
+.section-title{
+  font-size:.9rem;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border);
+  display:flex;align-items:center;gap:6px;
+}
+.section-title i{color:var(--primary)}
+
+/* ============ SETTINGS TABS ============ */
+.tabs{display:flex;gap:4px;background:#f1f5f9;padding:4px;border-radius:12px;width:fit-content;margin-bottom:20px}
+.tab{padding:9px 20px;border-radius:10px;cursor:pointer;font-weight:600;font-size:.88rem;color:var(--muted);border:none;background:none;font-family:inherit;transition:all .2s}
+.tab.active{background:var(--card);color:var(--primary);box-shadow:var(--shadow)}
+.tab:hover:not(.active){color:var(--dark)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ============ TOAST ============ */
+#toasts{position:fixed;top:20px;left:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{
+  background:#fff;padding:14px 18px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);
+  display:flex;align-items:center;gap:10px;min-width:280px;font-size:.9rem;
+  animation:slideUp .3s ease;border-right:4px solid var(--primary);
+}
+.toast.t-success{border-color:var(--success)}
+.toast.t-error{border-color:var(--danger)}
+.toast.t-warning{border-color:var(--warning)}
+.toast i{font-size:1.1rem}
+.toast.t-success i{color:var(--success)}
+.toast.t-error i{color:var(--danger)}
+.toast.t-warning i{color:var(--warning)}
+
+/* ============ UTILS ============ */
+.flex{display:flex;align-items:center;gap:10px}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.text-muted{color:var(--muted);font-size:.85rem}
+.text-success{color:var(--success)}
+.text-danger{color:var(--danger)}
+.fw-bold{font-weight:700}
+.empty-state{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty-state i{font-size:2.5rem;margin-bottom:12px;display:block;opacity:.4}
+.loading{text-align:center;padding:40px;color:var(--muted)}
+.loading i{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.clinic-tag{
+  display:inline-block;padding:3px 10px;border-radius:6px;font-size:.76rem;font-weight:600;
+  background:var(--primary-light);color:var(--primary-dark);
+}
+@media(max-width:1024px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  #app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .main{margin-right:0}
+}
+@media print{
+  .sidebar,.top-bar,.no-print{display:none!important}
+  .main{margin:0;padding:20px}
+  .card{box-shadow:none;border:1px solid #ddd}
+}
+/* Receipt print */
+.receipt-print{max-width:380px;margin:0 auto}
+.rp-line{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border)}
+.rp-total{display:flex;justify-content:space-between;padding:14px 0;font-size:1.2rem;font-weight:800;color:var(--primary);border-top:2px solid var(--dark)}
+</style>
+</head>
+<body>
+
+<div id="toasts"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN PAGE
+═══════════════════════════════════════════════════════ -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon-wrap"><i class="fas fa-hospital-alt"></i></div>
+      <h1>نظام الاستقبال</h1>
+      <p>عيادات الشفاء الطبية</p>
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-user"></i> اسم المستخدم</label>
+      <input type="text" id="lgUser" placeholder="أدخل اسم المستخدم" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-lock"></i> كلمة المرور</label>
+      <input type="password" id="lgPass" placeholder="أدخل كلمة المرور" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">
+      <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+    </button>
+    <div id="lgError" class="hidden" style="margin-top:14px;background:#fee2e2;color:#991b1b;padding:12px;border-radius:10px;font-size:.88rem;text-align:center"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════════════════════ -->
+<div id="app" class="hidden">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="s-icon"><i class="fas fa-hospital-alt"></i></div>
+      <h2>عيادات الشفاء</h2>
+      <div class="role">نظام الاستقبال</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">القائمة الرئيسية</div>
+      <div class="nav-item active" onclick="goTo('home')"><i class="fas fa-chart-pie"></i><span>الرئيسية</span></div>
+      <div class="nav-item" onclick="goTo('patients')"><i class="fas fa-users"></i><span>المرضى</span></div>
+      <div class="nav-item" onclick="goTo('register')"><i class="fas fa-user-plus"></i><span>تسجيل مريض</span></div>
+      <div class="nav-item" onclick="goTo('payment')"><i class="fas fa-cash-register"></i><span>المحاسبة السريعة</span></div>
+    </div>
+    <div class="nav-section" style="margin-top:8px">
+      <div class="nav-label">الإدارة</div>
+      <div class="nav-item" onclick="goTo('settings')"><i class="fas fa-cog"></i><span>الإعدادات</span></div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="av" id="sideAv">R</div>
+        <div class="uc-info">
+          <div class="uc-name" id="sideName">-</div>
+          <div class="uc-role">موظف استقبال</div>
+        </div>
+      </div>
+      <button class="btn btn-outline" style="width:100%;font-size:.85rem" onclick="doLogout()">
+        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="top-bar">
+      <h1 id="pageTitle">الرئيسية</h1>
+      <div class="tb-right">
+        <div class="clock-badge"><i class="fas fa-clock"></i><span id="clockEl">--:--</span></div>
+        <div class="clock-badge" style="background:#d1fae5;color:#065f46"><i class="fas fa-calendar"></i><span id="dateEl">-</span></div>
+      </div>
+    </div>
+    <div id="view"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL CONTAINER
+═══════════════════════════════════════════════════════ -->
+<div id="modalRoot"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   CONFIG - ضع بيانات Supabase هنا
+═══════════════════════════════════════════════════ */
+const SB_URL  = 'https://hejwbtrutjhbevdvfbyw.supabase.co';   // ← غيّر هذا
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhlandidHJ1dGpoYmV2ZHZmYnl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTQyMDIsImV4cCI6MjA5NjQzMDIwMn0.1GJRBu0Trs3mZqy564KrZbJtEh1afqWYRrWlxLoxERU';                       // ← غيّر هذا
+
+const { createClient } = supabase;
+const db = createClient(SB_URL, SB_KEY);
+
+/* ═══════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════ */
+let currentUser = null;
+let procedures  = [];
+let cart        = [];
+let currentView = 'home';
+let allPatients = [];
+let selectedPaymentPatient = null;
+let selectedPaymentMethod  = null;
+
+/* ═══════════════════════════════════════════════════
+   CRYPTO UTILS (PBKDF2 in browser)
+═══════════════════════════════════════════════════ */
+async function hashPassword(password, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name:'PBKDF2', salt:enc.encode(salt), iterations:100000, hash:'SHA-256' },
+    keyMaterial, 256
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
+}
+function randomSalt() {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return btoa(String.fromCharCode(...arr));
+}
+
+/* ═══════════════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════════════ */
+async function doLogin() {
+  const u = document.getElementById('lgUser').value.trim();
+  const p = document.getElementById('lgPass').value;
+  if (!u || !p) return showToast('أدخل اسم المستخدم وكلمة المرور', 'warning');
+
+  try {
+    const { data:users, error } = await db.from('users')
+      .select('*').eq('username', u).eq('is_active', true).limit(1);
+
+    if (error || !users?.length) return showLoginError('اسم المستخدم غير موجود');
+
+    const user = users[0];
+
+    // First-run: placeholder hashes — set real hash
+    if (user.password_hash === 'PLACEHOLDER_HASH') {
+      const salt = randomSalt();
+      const hash = await hashPassword(p, salt);
+      await db.from('users').update({ password_hash: hash, password_salt: salt }).eq('id', user.id);
+      user.password_hash = hash;
+      user.password_salt = salt;
+    }
+
+    const hash = await hashPassword(p, user.password_salt);
+    if (hash !== user.password_hash) return showLoginError('كلمة المرور غير صحيحة');
+
+    // Update last login
+    await db.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id);
+    await addAudit(user, 'login', 'users', user.id, `تسجيل دخول: ${user.full_name}`);
+
+    currentUser = user;
+    startApp();
+  } catch(e) {
+    showLoginError('خطأ في الاتصال بقاعدة البيانات: ' + e.message);
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('lgError');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+async function doLogout() {
+  if (currentUser) await addAudit(currentUser, 'logout', 'users', currentUser.id, `تسجيل خروج: ${currentUser.full_name}`);
+  currentUser = null;
+  cart = [];
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('lgPass').value = '';
+  document.getElementById('lgError').classList.add('hidden');
+}
+
+async function startApp() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('sideName').textContent = currentUser.full_name;
+  document.getElementById('sideAv').textContent = currentUser.full_name.charAt(0);
+  await loadProcedures();
+  goTo('home');
+  startClock();
+}
+
+/* ═══════════════════════════════════════════════════
+   CLOCK
+═══════════════════════════════════════════════════ */
+function startClock() {
+  const update = () => {
+    const now = new Date();
+    document.getElementById('clockEl').textContent = now.toLocaleTimeString('ar-JO', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('dateEl').textContent = now.toLocaleDateString('ar-JO', {weekday:'long', day:'numeric', month:'long'});
+  };
+  update();
+  setInterval(update, 1000);
+}
+
+/* ═══════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════ */
+function goTo(view) {
+  currentView = view;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.nav-item[onclick="goTo('${view}')"]`)?.classList.add('active');
+  const titles = { home:'الرئيسية', patients:'المرضى', register:'تسجيل مريض جديد', payment:'المحاسبة السريعة', settings:'الإعدادات' };
+  document.getElementById('pageTitle').textContent = titles[view] || view;
+  const views = { home:viewHome, patients:viewPatients, register:viewRegister, payment:viewPayment, settings:viewSettings };
+  (views[view] || (() => {}))();
+}
+
+/* ═══════════════════════════════════════════════════
+   SUPABASE HELPERS
+═══════════════════════════════════════════════════ */
+async function loadProcedures() {
+  const { data } = await db.from('procedures').select('*').eq('is_active', true).order('name');
+  procedures = data || [];
+}
+
+async function addAudit(user, action, entityType, entityId, details) {
+  try {
+    await db.from('audit_log').insert({
+      user_id: user?.id || null,
+      user_name: user?.full_name || 'System',
+      action, entity_type: entityType,
+      entity_id: String(entityId || ''),
+      details
+    });
+  } catch(e) { /* silent */ }
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════ */
+function fmt(date) { return date ? new Date(date).toLocaleDateString('ar-JO') : '-'; }
+function fmtTime(date) { return date ? new Date(date).toLocaleTimeString('ar-JO', {hour:'2-digit', minute:'2-digit'}) : '-'; }
+function fmtCur(n) { return new Intl.NumberFormat('ar-JO', {style:'currency', currency:'JOD'}).format(n || 0); }
+function calcAge(bd) {
+  if (!bd) return null;
+  const t = new Date(), b = new Date(bd);
+  let a = t.getFullYear() - b.getFullYear();
+  if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) a--;
+  return a;
+}
+function fmtAge(bd) { const a = calcAge(bd); return a === null ? '-' : a + ' سنة'; }
+function statusBadge(s) {
+  const map = { waiting:['b-waiting','بانتظار'], in_progress:['b-in_progress','قيد العلاج'], completed:['b-completed','تم العلاج'], paid:['b-paid','تم الدفع'] };
+  const [cls, lbl] = map[s] || ['b-waiting', s];
+  return `<span class="badge ${cls}">${lbl}</span>`;
+}
+function clinicName(id) {
+  const map = { dental:'الأسنان', cosmetic:'التجميل', derma:'الجلدية', general:'العامة', ent:'أنف وأذن', all:'عامة' };
+  return map[id] || id;
+}
+function showToast(msg, type='success') {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  const icon = type==='success'?'fa-check-circle':type==='error'?'fa-times-circle':'fa-exclamation-circle';
+  t.className = `toast t-${type}`;
+  t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+function openModal(html, large=false) {
+  document.getElementById('modalRoot').innerHTML = `<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal${large?' modal-lg':''}">${html}</div></div>`;
+}
+function closeModal() { document.getElementById('modalRoot').innerHTML = ''; }
+
+/* ═══════════════════════════════════════════════════
+   HOME VIEW
+═══════════════════════════════════════════════════ */
+async function viewHome() {
+  document.getElementById('view').innerHTML = `<div class="loading"><i class="fas fa-spinner"></i><p style="margin-top:10px">جاري التحميل...</p></div>`;
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [{ data: pts }, { data: pays }] = await Promise.all([
+    db.from('patients').select('*').order('created_at', { ascending: false }),
+    db.from('payments').select('*').gte('payment_date', today)
+  ]);
+
+  const todayPts = (pts || []).filter(p => p.created_at?.slice(0,10) === today);
+  const waiting  = (pts || []).filter(p => p.status === 'waiting');
+  const todayRev = (pays || []).reduce((s, p) => s + Number(p.amount), 0);
+  allPatients = pts || [];
+
+  document.getElementById('view').innerHTML = `
+    <div class="stats-row">
+      <div class="stat">
+        <div class="st-icon st-blue"><i class="fas fa-users"></i></div>
+        <div><div class="st-val">${(pts||[]).length}</div><div class="st-label">إجمالي المرضى</div></div>
+      </div>
+      <div class="stat">
+        <div class="st-icon st-orange"><i class="fas fa-clock"></i></div>
+        <div><div class="st-val">${waiting.length}</div><div class="st-label">في الانتظار</div></div>
+      </div>
+      <div class="stat">
+        <div class="st-icon st-green"><i class="fas fa-calendar-day"></i></div>
+        <div><div class="st-val">${todayPts.length}</div><div class="st-label">مرضى اليوم</div></div>
+      </div>
+      <div class="stat">
+        <div class="st-icon st-green"><i class="fas fa-money-bill-wave"></i></div>
+        <div><div class="st-val" style="font-size:1.2rem">${fmtCur(todayRev)}</div><div class="st-label">إيرادات اليوم</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fas fa-list"></i> آخر المرضى المسجلين</h2>
+        <button class="btn btn-primary btn-sm" onclick="goTo('register')"><i class="fas fa-plus"></i> تسجيل مريض</button>
+      </div>
+      <div class="tbl-wrap">
+        <table class="dtbl">
+          <thead><tr><th>#</th><th>الاسم</th><th>العيادة</th><th>الحالة</th><th>الوقت</th><th>إجراء</th></tr></thead>
+          <tbody>
+            ${(pts||[]).slice(0,8).map(p => `
+              <tr>
+                <td class="fw-bold">${p.file_number}</td>
+                <td><b>${p.name}</b><br><span class="text-muted">${p.phone}</span></td>
+                <td><span class="clinic-tag">${clinicName(p.clinic_id)}</span></td>
+                <td>${statusBadge(p.status)}</td>
+                <td>${fmtTime(p.created_at)}</td>
+                <td>
+                  <button class="btn btn-xs btn-primary" onclick="viewPatient('${p.id}')"><i class="fas fa-eye"></i></button>
+                  ${p.status==='completed'?`<button class="btn btn-xs btn-success" onclick="quickPay('${p.id}')"><i class="fas fa-cash-register"></i></button>`:''}
+                </td>
+              </tr>
+            `).join('') || `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-inbox"></i><p>لا يوجد مرضى</p></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════
+   PATIENTS VIEW
+═══════════════════════════════════════════════════ */
+async function viewPatients() {
+  document.getElementById('view').innerHTML = `<div class="loading"><i class="fas fa-spinner"></i></div>`;
+  const { data: pts } = await db.from('patients').select('*').order('created_at', { ascending: false });
+  allPatients = pts || [];
+  renderPatientsTable(allPatients);
+}
+
+function renderPatientsTable(list) {
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fas fa-users"></i> قائمة المرضى (${list.length})</h2>
+        <div class="flex">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input id="ptSearch" placeholder="بحث بالاسم أو الهاتف..." oninput="filterPts()">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="goTo('register')"><i class="fas fa-plus"></i> تسجيل</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="dtbl">
+          <thead>
+            <tr><th>#ملف</th><th>الاسم</th><th>الهاتف</th><th>العمر</th><th>العيادة</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr>
+          </thead>
+          <tbody id="ptBody">
+            ${renderPtRows(list)}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderPtRows(list) {
+  if (!list.length) return `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-users"></i><p>لا يوجد مرضى</p></div></td></tr>`;
+  return list.map(p => `
+    <tr>
+      <td class="fw-bold">${p.file_number}</td>
+      <td><b>${p.name}</b><br><span class="text-muted">${p.gender==='male'?'ذكر':'أنثى'}</span></td>
+      <td dir="ltr">${p.phone}</td>
+      <td><span class="age-pill" style="font-size:.78rem;padding:4px 10px">${fmtAge(p.birth_date)}</span></td>
+      <td><span class="clinic-tag">${clinicName(p.clinic_id)}</span></td>
+      <td>${statusBadge(p.status)}</td>
+      <td>${fmt(p.created_at)}</td>
+      <td class="flex" style="gap:4px">
+        <button class="btn btn-xs btn-primary" onclick="viewPatient('${p.id}')"><i class="fas fa-eye"></i></button>
+        ${p.status==='completed'?`<button class="btn btn-xs btn-success" onclick="quickPay('${p.id}')"><i class="fas fa-cash-register"></i></button>`:''}
+        ${currentUser?.role==='admin'?`<button class="btn btn-xs btn-danger" onclick="deletePatient('${p.id}')"><i class="fas fa-trash"></i></button>`:''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterPts() {
+  const q = document.getElementById('ptSearch').value.toLowerCase();
+  const filtered = allPatients.filter(p => p.name.toLowerCase().includes(q) || p.phone.includes(q) || String(p.file_number).includes(q));
+  document.getElementById('ptBody').innerHTML = renderPtRows(filtered);
+}
+
+async function viewPatient(id) {
+  const p = allPatients.find(x => x.id === id);
+  if (!p) return;
+  const { data: pays } = await db.from('payments').select('*').eq('patient_id', id).order('payment_date', { ascending: false });
+  const totalPaid = (pays || []).reduce((s, x) => s + Number(x.amount), 0);
+
+  openModal(`
+    <div class="modal-header">
+      <h2><i class="fas fa-user-injured" style="color:var(--primary)"></i> ملف المريض — ${p.name}</h2>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="fgrid">
+      <div><label class="section-title" style="margin-bottom:4px">الاسم</label><p class="fw-bold">${p.name}</p></div>
+      <div><label class="section-title" style="margin-bottom:4px">رقم الملف</label><p class="fw-bold">#${p.file_number}</p></div>
+      <div><label class="section-title" style="margin-bottom:4px">الهاتف</label><p dir="ltr">${p.phone}</p></div>
+      <div><label class="section-title" style="margin-bottom:4px">العمر</label><span class="age-pill">${fmtAge(p.birth_date)}</span></div>
+      <div><label class="section-title" style="margin-bottom:4px">العيادة</label><span class="clinic-tag">${clinicName(p.clinic_id)}</span></div>
+      <div><label class="section-title" style="margin-bottom:4px">الحالة</label>${statusBadge(p.status)}</div>
+    </div>
+    ${p.notes ? `<div class="divider"></div><p class="text-muted"><i class="fas fa-sticky-note"></i> ${p.notes}</p>` : ''}
+    <div class="divider"></div>
+    <p class="section-title"><i class="fas fa-refresh"></i> تغيير الحالة</p>
+    <div class="flex" style="flex-wrap:wrap;gap:8px;margin-bottom:16px">
+      <button class="btn btn-warning btn-sm" onclick="updateStatus('${id}','in_progress');closeModal()">بدء العلاج</button>
+      <button class="btn btn-success btn-sm" onclick="updateStatus('${id}','completed');closeModal()">إنهاء العلاج</button>
+      <button class="btn btn-secondary btn-sm" onclick="updateStatus('${id}','waiting');closeModal()">إعادة للانتظار</button>
+    </div>
+    <div class="divider"></div>
+    <p class="section-title"><i class="fas fa-receipt"></i> سجل الدفعات — الإجمالي: ${fmtCur(totalPaid)}</p>
+    ${(pays||[]).length ? `
+      <table class="dtbl">
+        <thead><tr><th>التاريخ</th><th>الإجراء</th><th>المبلغ</th><th>طريقة الدفع</th><th>الموظف</th></tr></thead>
+        <tbody>
+          ${pays.map(pay => `
+            <tr>
+              <td>${fmt(pay.payment_date)}</td>
+              <td>${pay.procedure_name}</td>
+              <td class="fw-bold text-success">${fmtCur(pay.amount)}</td>
+              <td>${pay.payment_method}</td>
+              <td>${pay.created_by || '-'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    ` : '<p class="text-muted">لا توجد دفعات</p>'}
+    <div class="divider"></div>
+    <div class="flex" style="justify-content:center">
+      <button class="btn btn-success" onclick="closeModal();quickPay('${id}')"><i class="fas fa-cash-register"></i> إضافة دفعة</button>
+      <button class="btn btn-outline" onclick="closeModal()">إغلاق</button>
+    </div>
+  `);
+}
+
+async function updateStatus(id, status) {
+  await db.from('patients').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
+  await addAudit(currentUser, 'edit', 'patients', id, `تحديث حالة المريض إلى ${status}`);
+  const labels = { waiting:'بانتظار', in_progress:'قيد العلاج', completed:'تم العلاج', paid:'تم الدفع' };
+  showToast(`تم تحديث الحالة إلى: ${labels[status] || status}`);
+  if (currentView === 'patients') viewPatients();
+  else if (currentView === 'home') viewHome();
+}
+
+async function deletePatient(id) {
+  if (!confirm('هل أنت متأكد من حذف هذا المريض؟ سيتم حذف جميع دفعاته أيضاً.')) return;
+  await db.from('patients').delete().eq('id', id);
+  await addAudit(currentUser, 'delete', 'patients', id, 'حذف مريض');
+  showToast('تم حذف المريض', 'warning');
+  viewPatients();
+}
+
+/* ═══════════════════════════════════════════════════
+   REGISTER VIEW
+═══════════════════════════════════════════════════ */
+function viewRegister() {
+  document.getElementById('view').innerHTML = `
+    <div class="card" style="max-width:760px;margin:0 auto">
+      <div class="card-header">
+        <h2><i class="fas fa-user-plus"></i> بيانات المريض الجديد</h2>
+      </div>
+      <p class="section-title"><i class="fas fa-id-card"></i> البيانات الشخصية</p>
+      <div class="fgrid">
+        <div class="form-group">
+          <label>الاسم الكامل *</label>
+          <input id="rName" type="text" placeholder="اسم المريض">
+        </div>
+        <div class="form-group">
+          <label>رقم الهاتف *</label>
+          <input id="rPhone" type="tel" placeholder="07xxxxxxxx" dir="ltr">
+        </div>
+        <div class="form-group">
+          <label>تاريخ الميلاد *</label>
+          <input id="rBirth" type="date" onchange="showAge()">
+          <div id="ageShow"></div>
+        </div>
+        <div class="form-group">
+          <label>الجنس</label>
+          <select id="rGender">
+            <option value="male">ذكر</option>
+            <option value="female">أنثى</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>العيادة *</label>
+          <select id="rClinic">
+            <option value="dental">عيادة الأسنان</option>
+            <option value="cosmetic">عيادة التجميل</option>
+            <option value="derma">عيادة الجلدية</option>
+            <option value="general">العيادة العامة</option>
+            <option value="ent">أنف وأذن وحنجرة</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>رقم الهوية</label>
+          <input id="rId" type="text" placeholder="رقم الهوية (اختياري)">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ملاحظات</label>
+        <input id="rNotes" type="text" placeholder="أي ملاحظات إضافية...">
+      </div>
+      <div class="flex" style="margin-top:20px">
+        <button class="btn btn-primary" onclick="registerPatient(false)"><i class="fas fa-save"></i> حفظ وتسجيل</button>
+        <button class="btn btn-success" onclick="registerPatient(true)"><i class="fas fa-save"></i> حفظ وإضافة آخر</button>
+        <button class="btn btn-outline" onclick="goTo('patients')">إلغاء</button>
+      </div>
+    </div>
+  `;
+}
+
+function showAge() {
+  const bd = document.getElementById('rBirth').value;
+  const age = calcAge(bd);
+  document.getElementById('ageShow').innerHTML = age !== null ? `<span class="age-pill"><i class="fas fa-birthday-cake"></i> ${age} سنة</span>` : '';
+}
+
+async function registerPatient(another) {
+  const name  = document.getElementById('rName').value.trim();
+  const phone = document.getElementById('rPhone').value.trim();
+  const birth = document.getElementById('rBirth').value;
+  const clinic= document.getElementById('rClinic').value;
+  if (!name || !phone || !birth) return showToast('أكمل الحقول المطلوبة', 'error');
+
+  const { data, error } = await db.from('patients').insert({
+    name, phone, birth_date: birth,
+    gender: document.getElementById('rGender').value,
+    clinic_id: clinic,
+    id_number: document.getElementById('rId').value,
+    notes: document.getElementById('rNotes').value,
+    status: 'waiting',
+    created_by: currentUser.id
+  }).select().single();
+
+  if (error) return showToast('خطأ في التسجيل: ' + error.message, 'error');
+
+  await addAudit(currentUser, 'add', 'patients', data.id, `تسجيل مريض جديد: ${name}`);
+  showToast(`تم تسجيل ${name} — ملف #${data.file_number}`);
+
+  if (another) viewRegister();
+  else goTo('patients');
+}
+
+/* ═══════════════════════════════════════════════════
+   PAYMENT (QUICK PAY) VIEW
+═══════════════════════════════════════════════════ */
+async function viewPayment() {
+  cart = [];
+  selectedPaymentPatient = null;
+  selectedPaymentMethod = null;
+  const { data: pts } = await db.from('patients')
+    .select('*').in('status', ['completed', 'waiting', 'in_progress'])
+    .order('created_at', { ascending: false });
+
+  const procs = procedures;
+
+  document.getElementById('view').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fas fa-cash-register"></i> المحاسبة السريعة</h2>
+      </div>
+
+      <!-- Patient selector -->
+      <div class="form-group" style="max-width:400px">
+        <label>اختر المريض *</label>
+        <select id="payPatSel" onchange="setPayPatient(this.value)">
+          <option value="">— اختر مريض —</option>
+          ${(pts||[]).map(p => `<option value="${p.id}">#${p.file_number} ${p.name} (${clinicName(p.clinic_id)})</option>`).join('')}
+        </select>
+      </div>
+      <div id="selPatInfo"></div>
+      <div class="divider"></div>
+
+      <div class="pay-panel">
+        <!-- Left: Procedures -->
+        <div class="proc-list">
+          <div class="pl-header">
+            <p style="font-weight:700;margin-bottom:8px;font-size:.9rem"><i class="fas fa-list-check"></i> الإجراءات الطبية</p>
+            <input id="procSearch" placeholder="بحث في الإجراءات..." oninput="filterProcs()">
+          </div>
+          <div class="proc-items" id="procItems">
+            ${renderProcItems(procs)}
+          </div>
+        </div>
+
+        <!-- Right: Cart + Payment -->
+        <div class="pay-receipt">
+          <div class="receipt-card">
+            <h3><i class="fas fa-shopping-cart"></i> الفاتورة</h3>
+            <div id="cartItems"><p class="text-muted" style="font-size:.85rem">اضغط على الإجراء لإضافته</p></div>
+            <div class="divider"></div>
+            <div class="cart-total" id="cartTotal">الإجمالي: ${fmtCur(0)}</div>
+          </div>
+
+          <!-- Custom amount -->
+          <div class="form-group" style="margin-bottom:8px">
+            <label>أو أدخل مبلغ مخصص</label>
+            <div class="flex">
+              <input id="customProcName" type="text" placeholder="اسم الإجراء" style="flex:2">
+              <input id="customAmt" type="number" step="0.5" placeholder="المبلغ" dir="ltr" style="flex:1;min-width:80px">
+              <button class="btn btn-primary btn-sm" onclick="addCustom()"><i class="fas fa-plus"></i></button>
+            </div>
+          </div>
+
+          <!-- Payment Methods -->
+          <div>
+            <p style="font-weight:700;font-size:.88rem;margin-bottom:8px">طريقة الدفع *</p>
+            <div class="pmethods">
+              <div class="pm-btn pm-cash" onclick="selPM(this,'cash')"><i class="fas fa-money-bill-wave"></i><span>نقدي</span></div>
+              <div class="pm-btn pm-visa" onclick="selPM(this,'visa')"><i class="fab fa-cc-visa"></i><span>Visa</span></div>
+              <div class="pm-btn pm-mastercard" onclick="selPM(this,'mastercard')"><i class="fab fa-cc-mastercard"></i><span>Mastercard</span></div>
+              <div class="pm-btn pm-mada" onclick="selPM(this,'mada')"><i class="fas fa-credit-card"></i><span>مدى</span></div>
+              <div class="pm-btn pm-apple" onclick="selPM(this,'apple')"><i class="fab fa-apple"></i><span>Apple Pay</span></div>
+              <div class="pm-btn pm-bank" onclick="selPM(this,'bank')"><i class="fas fa-university"></i><span>تحويل</span></div>
+              <div class="pm-btn pm-cliq" onclick="selPM(this,'cliq')"><i class="fas fa-mobile-alt"></i><span>CliQ</span></div>
+            </div>
+          </div>
+
+          <button class="btn btn-success" style="width:100%;font-size:1rem;padding:16px" onclick="confirmPayment()">
+            <i class="fas fa-check-circle"></i> تأكيد الدفع
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderProcItems(list) {
+  if (!list.length) return '<p class="text-muted" style="padding:16px">لا توجد إجراءات</p>';
+  return list.map(p => `
+    <div class="proc-item" onclick="addToCart('${p.id}','${p.name.replace(/'/g,"\\'")}',${p.default_price})">
+      <div>
+        <div class="pi-name">${p.name}</div>
+        <div class="pi-clinic">${clinicName(p.clinic_id)}</div>
+      </div>
+      <div class="pi-price">${fmtCur(p.default_price)}</div>
+    </div>
+  `).join('');
+}
+
+function filterProcs() {
+  const q = document.getElementById('procSearch').value.toLowerCase();
+  const filtered = procedures.filter(p => p.name.toLowerCase().includes(q));
+  document.getElementById('procItems').innerHTML = renderProcItems(filtered);
+}
+
+function setPayPatient(id) {
+  selectedPaymentPatient = allPatients.find(p => p.id === id) || null;
+  if (!selectedPaymentPatient) {
+    document.getElementById('selPatInfo').innerHTML = '';
+    return;
+  }
+  const p = selectedPaymentPatient;
+  document.getElementById('selPatInfo').innerHTML = `
+    <div style="background:var(--primary-light);border-radius:10px;padding:12px 16px;display:flex;gap:16px;flex-wrap:wrap">
+      <span><b>${p.name}</b></span>
+      <span class="text-muted">${fmtAge(p.birth_date)}</span>
+      <span class="clinic-tag">${clinicName(p.clinic_id)}</span>
+      ${statusBadge(p.status)}
+    </div>
+  `;
+}
+
+function addToCart(id, name, price) {
+  cart.push({ id, name, price: Number(price) });
+  renderCart();
+}
+
+function addCustom() {
+  const name = document.getElementById('customProcName').value.trim();
+  const price = parseFloat(document.getElementById('customAmt').value);
+  if (!name || isNaN(price)) return showToast('أدخل اسم الإجراء والمبلغ', 'warning');
+  cart.push({ id: 'custom_' + Date.now(), name, price });
+  document.getElementById('customProcName').value = '';
+  document.getElementById('customAmt').value = '';
+  renderCart();
+}
+
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
+  renderCart();
+}
+
+function renderCart() {
+  const total = cart.reduce((s, i) => s + i.price, 0);
+  document.getElementById('cartItems').innerHTML = cart.length
+    ? cart.map((item, i) => `
+        <div class="cart-item">
+          <div><div class="ci-name">${item.name}</div></div>
+          <div class="flex"><span class="ci-price">${fmtCur(item.price)}</span>
+            <button class="ci-del" onclick="removeFromCart(${i})"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+      `).join('')
+    : '<p class="text-muted" style="font-size:.85rem">لا توجد إجراءات</p>';
+  document.getElementById('cartTotal').textContent = `الإجمالي: ${fmtCur(total)}`;
+}
+
+function selPM(el, method) {
+  document.querySelectorAll('.pm-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedPaymentMethod = method;
+}
+
+async function confirmPayment() {
+  if (!selectedPaymentPatient) return showToast('اختر مريضاً أولاً', 'error');
+  if (!cart.length) return showToast('أضف إجراء واحد على الأقل', 'error');
+  if (!selectedPaymentMethod) return showToast('اختر طريقة الدفع', 'error');
+
+  const total = cart.reduce((s, i) => s + i.price, 0);
+  const procName = cart.map(i => i.name).join(' + ');
+
+  const { data, error } = await db.from('payments').insert({
+    patient_id: selectedPaymentPatient.id,
+    procedure_name: procName,
+    amount: total,
+    payment_method: selectedPaymentMethod,
+    created_by: currentUser.full_name
+  }).select().single();
+
+  if (error) return showToast('خطأ: ' + error.message, 'error');
+
+  // Update patient status
+  await db.from('patients').update({ status: 'paid' }).eq('id', selectedPaymentPatient.id);
+  await addAudit(currentUser, 'add', 'payments', data.id, `دفعة ${fmtCur(total)} للمريض ${selectedPaymentPatient.name}`);
+
+  showToast(`تم تسجيل الدفع: ${fmtCur(total)}`);
+  showReceiptModal(data, selectedPaymentPatient, cart, total);
+
+  cart = [];
+  selectedPaymentPatient = null;
+  selectedPaymentMethod = null;
+}
+
+function showReceiptModal(payment, patient, items, total) {
+  const pmNames = { cash:'نقدي', visa:'Visa', mastercard:'Mastercard', mada:'مدى', apple:'Apple Pay', bank:'تحويل بنكي', cliq:'CliQ' };
+  openModal(`
+    <div class="modal-header">
+      <h2><i class="fas fa-receipt" style="color:var(--success)"></i> سند قبض</h2>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="receipt-print" id="printArea">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:1.4rem;font-weight:800;color:var(--primary)">عيادات الشفاء الطبية</div>
+        <div class="text-muted" style="font-size:.85rem">${new Date().toLocaleDateString('ar-JO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+      </div>
+      <div class="rp-line"><span>رقم السند</span><b>#${payment.receipt_number || payment.id.slice(-6).toUpperCase()}</b></div>
+      <div class="rp-line"><span>المريض</span><b>${patient.name}</b></div>
+      <div class="rp-line"><span>رقم الملف</span><b>#${patient.file_number}</b></div>
+      <div class="rp-line"><span>الهاتف</span><b dir="ltr">${patient.phone}</b></div>
+      <div class="rp-line"><span>العمر</span><b>${fmtAge(patient.birth_date)}</b></div>
+      <div style="margin:12px 0">
+        ${items.map(i => `<div class="rp-line"><span>${i.name}</span><b>${fmtCur(i.price)}</b></div>`).join('')}
+      </div>
+      <div class="rp-line"><span>طريقة الدفع</span><b>${pmNames[payment.payment_method] || payment.payment_method}</b></div>
+      <div class="rp-line"><span>الموظف</span><b>${payment.created_by}</b></div>
+      <div class="rp-total"><span>الإجمالي</span><b>${fmtCur(total)}</b></div>
+      <div style="text-align:center;margin-top:20px;font-size:.8rem;color:var(--muted)">شكراً لثقتكم — عيادات الشفاء الطبية</div>
+    </div>
+    <div class="flex no-print" style="justify-content:center;margin-top:20px">
+      <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> طباعة</button>
+      <button class="btn btn-outline" onclick="closeModal()">إغلاق</button>
+    </div>
+  `);
+}
+
+async function quickPay(patientId) {
+  if (!allPatients.length) {
+    const { data } = await db.from('patients').select('*').order('created_at', { ascending: false });
+    allPatients = data || [];
+  }
+  await viewPayment();
+  document.getElementById('payPatSel').value = patientId;
+  setPayPatient(patientId);
+}
+
+/* ═══════════════════════════════════════════════════
+   SETTINGS VIEW
+═══════════════════════════════════════════════════ */
+async function viewSettings() {
+  document.getElementById('view').innerHTML = `<div class="loading"><i class="fas fa-spinner"></i></div>`;
+  const [{ data: users }, { data: procs }] = await Promise.all([
+    db.from('users').select('*').order('created_at'),
+    db.from('procedures').select('*').order('name')
+  ]);
+
+  document.getElementById('view').innerHTML = `
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('users', this)"><i class="fas fa-users-cog"></i> المستخدمين</button>
+      <button class="tab" onclick="switchTab('procs', this)"><i class="fas fa-list-check"></i> الإجراءات</button>
+      <button class="tab" onclick="switchTab('password', this)"><i class="fas fa-key"></i> كلمة المرور</button>
+    </div>
+
+    <!-- ======= USERS TAB ======= -->
+    <div id="tab-users" class="tab-content active">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-users"></i> إدارة المستخدمين</h2>
+          <button class="btn btn-primary btn-sm" onclick="openAddUser()"><i class="fas fa-plus"></i> مستخدم جديد</button>
+        </div>
+        <table class="dtbl">
+          <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الصلاحية</th><th>آخر دخول</th><th>الحالة</th><th>إجراء</th></tr></thead>
+          <tbody>
+            ${(users||[]).map(u => `
+              <tr>
+                <td><b>${u.full_name}</b></td>
+                <td dir="ltr">${u.username}</td>
+                <td><span class="badge" style="${u.role==='admin'?'background:#fee2e2;color:#991b1b':'background:#dbeafe;color:#1e40af'}">${u.role==='admin'?'مدير':'استقبال'}</span></td>
+                <td>${u.last_login ? fmtTime(u.last_login) : 'لم يدخل'}</td>
+                <td><span class="badge ${u.is_active?'b-paid':'b-waiting'}">${u.is_active?'نشط':'موقوف'}</span></td>
+                <td class="flex" style="gap:4px">
+                  <button class="btn btn-xs btn-warning" onclick="toggleUser('${u.id}',${u.is_active})">
+                    <i class="fas fa-${u.is_active?'ban':'check'}"></i>
+                  </button>
+                  ${u.id !== currentUser.id ? `<button class="btn btn-xs btn-danger" onclick="deleteUser('${u.id}','${u.full_name}')"><i class="fas fa-trash"></i></button>` : ''}
+                  <button class="btn btn-xs btn-secondary" onclick="resetUserPass('${u.id}','${u.full_name}')"><i class="fas fa-key"></i></button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ======= PROCEDURES TAB ======= -->
+    <div id="tab-procs" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-list-check"></i> إدارة الإجراءات الطبية</h2>
+          <button class="btn btn-primary btn-sm" onclick="openAddProc()"><i class="fas fa-plus"></i> إجراء جديد</button>
+        </div>
+        <table class="dtbl">
+          <thead><tr><th>اسم الإجراء</th><th>العيادة</th><th>السعر</th><th>الحالة</th><th>إجراء</th></tr></thead>
+          <tbody id="procsBody">
+            ${(procs||[]).map(p => `
+              <tr>
+                <td><b>${p.name}</b></td>
+                <td><span class="clinic-tag">${clinicName(p.clinic_id)}</span></td>
+                <td class="text-success fw-bold">${fmtCur(p.default_price)}</td>
+                <td><span class="badge ${p.is_active?'b-paid':'b-waiting'}">${p.is_active?'نشط':'مخفي'}</span></td>
+                <td class="flex" style="gap:4px">
+                  <button class="btn btn-xs btn-warning" onclick="toggleProc('${p.id}',${p.is_active})"><i class="fas fa-${p.is_active?'eye-slash':'eye'}"></i></button>
+                  <button class="btn btn-xs btn-danger" onclick="deleteProc('${p.id}','${p.name.replace(/'/g,"\\''")}')"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ======= PASSWORD TAB ======= -->
+    <div id="tab-password" class="tab-content">
+      <div class="card" style="max-width:480px">
+        <div class="card-header">
+          <h2><i class="fas fa-key"></i> تغيير كلمة مروري</h2>
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور الحالية</label>
+          <input type="password" id="curPass" placeholder="أدخل كلمة المرور الحالية">
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور الجديدة</label>
+          <input type="password" id="newPass" placeholder="8 أحرف على الأقل">
+        </div>
+        <div class="form-group">
+          <label>تأكيد كلمة المرور الجديدة</label>
+          <input type="password" id="confPass" placeholder="أعد كتابة كلمة المرور">
+        </div>
+        <button class="btn btn-primary" onclick="changeMyPassword()"><i class="fas fa-save"></i> حفظ</button>
+      </div>
+    </div>
+  `;
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+/* ---- Users management ---- */
+function openAddUser() {
+  openModal(`
+    <div class="modal-header">
+      <h2><i class="fas fa-user-plus" style="color:var(--primary)"></i> مستخدم جديد</h2>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="fgrid">
+      <div class="form-group"><label>الاسم الكامل *</label><input id="nuName" type="text" placeholder="الاسم"></div>
+      <div class="form-group"><label>اسم المستخدم *</label><input id="nuUser" type="text" placeholder="username" dir="ltr"></div>
+      <div class="form-group"><label>كلمة المرور *</label><input id="nuPass" type="password" placeholder="كلمة المرور"></div>
+      <div class="form-group"><label>الصلاحية</label>
+        <select id="nuRole"><option value="reception">استقبال</option><option value="admin">مدير</option></select>
+      </div>
+    </div>
+    <div class="flex" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="saveNewUser()"><i class="fas fa-save"></i> حفظ</button>
+      <button class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+    </div>
+  `);
+}
+
+async function saveNewUser() {
+  const name  = document.getElementById('nuName').value.trim();
+  const uname = document.getElementById('nuUser').value.trim();
+  const pass  = document.getElementById('nuPass').value;
+  const role  = document.getElementById('nuRole').value;
+  if (!name || !uname || !pass) return showToast('أكمل الحقول المطلوبة', 'error');
+  if (pass.length < 6) return showToast('كلمة المرور 6 أحرف على الأقل', 'error');
+
+  const salt = randomSalt();
+  const hash = await hashPassword(pass, salt);
+
+  const { error } = await db.from('users').insert({
+    username: uname, password_hash: hash, password_salt: salt,
+    full_name: name, role, created_by: currentUser.id
+  });
+  if (error) return showToast('خطأ: ' + (error.message.includes('unique') ? 'اسم المستخدم موجود مسبقاً' : error.message), 'error');
+  await addAudit(currentUser, 'add', 'users', uname, `إضافة مستخدم جديد: ${name}`);
+  showToast('تم إضافة المستخدم بنجاح');
+  closeModal();
+  viewSettings();
+}
+
+async function toggleUser(id, isActive) {
+  await db.from('users').update({ is_active: !isActive }).eq('id', id);
+  await addAudit(currentUser, 'edit', 'users', id, `${isActive?'إيقاف':'تفعيل'} مستخدم`);
+  showToast(isActive ? 'تم إيقاف المستخدم' : 'تم تفعيل المستخدم');
+  viewSettings();
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`هل أنت متأكد من حذف المستخدم "${name}"؟`)) return;
+  await db.from('users').delete().eq('id', id);
+  await addAudit(currentUser, 'delete', 'users', id, `حذف مستخدم: ${name}`);
+  showToast('تم حذف المستخدم', 'warning');
+  viewSettings();
+}
+
+function resetUserPass(id, name) {
+  openModal(`
+    <div class="modal-header">
+      <h2><i class="fas fa-key" style="color:var(--warning)"></i> إعادة تعيين كلمة مرور — ${name}</h2>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور الجديدة *</label>
+      <input type="password" id="rpNew" placeholder="كلمة المرور الجديدة">
+    </div>
+    <div class="flex" style="margin-top:16px">
+      <button class="btn btn-warning" onclick="doResetPass('${id}','${name}')"><i class="fas fa-key"></i> إعادة التعيين</button>
+      <button class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+    </div>
+  `);
+}
+
+async function doResetPass(id, name) {
+  const pass = document.getElementById('rpNew').value;
+  if (!pass || pass.length < 6) return showToast('كلمة المرور 6 أحرف على الأقل', 'error');
+  const salt = randomSalt();
+  const hash = await hashPassword(pass, salt);
+  await db.from('users').update({ password_hash: hash, password_salt: salt }).eq('id', id);
+  await addAudit(currentUser, 'edit', 'users', id, `إعادة تعيين كلمة مرور: ${name}`);
+  showToast('تم تغيير كلمة المرور بنجاح');
+  closeModal();
+}
+
+async function changeMyPassword() {
+  const cur = document.getElementById('curPass').value;
+  const nw  = document.getElementById('newPass').value;
+  const cf  = document.getElementById('confPass').value;
+  if (!cur || !nw || !cf) return showToast('أكمل جميع الحقول', 'error');
+  if (nw !== cf) return showToast('كلمة المرور الجديدة غير متطابقة', 'error');
+  if (nw.length < 6) return showToast('كلمة المرور 6 أحرف على الأقل', 'error');
+
+  const curHash = await hashPassword(cur, currentUser.password_salt);
+  if (curHash !== currentUser.password_hash) return showToast('كلمة المرور الحالية غير صحيحة', 'error');
+
+  const salt = randomSalt();
+  const hash = await hashPassword(nw, salt);
+  await db.from('users').update({ password_hash: hash, password_salt: salt }).eq('id', currentUser.id);
+  currentUser.password_hash = hash;
+  currentUser.password_salt = salt;
+  await addAudit(currentUser, 'edit', 'users', currentUser.id, 'تغيير كلمة المرور الشخصية');
+  showToast('تم تغيير كلمة المرور بنجاح');
+  document.getElementById('curPass').value = '';
+  document.getElementById('newPass').value = '';
+  document.getElementById('confPass').value = '';
+}
+
+/* ---- Procedures management ---- */
+function openAddProc() {
+  openModal(`
+    <div class="modal-header">
+      <h2><i class="fas fa-plus-circle" style="color:var(--primary)"></i> إجراء طبي جديد</h2>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="fgrid">
+      <div class="form-group" style="grid-column:1/-1"><label>اسم الإجراء *</label><input id="pnName" type="text" placeholder="مثال: حشوة عادية"></div>
+      <div class="form-group">
+        <label>العيادة</label>
+        <select id="pnClinic">
+          <option value="all">جميع العيادات</option>
+          <option value="dental">الأسنان</option>
+          <option value="cosmetic">التجميل</option>
+          <option value="derma">الجلدية</option>
+          <option value="general">العامة</option>
+          <option value="ent">أنف وأذن</option>
+        </select>
+      </div>
+      <div class="form-group"><label>السعر الافتراضي (دينار)</label><input id="pnPrice" type="number" step="0.5" placeholder="0.00" dir="ltr"></div>
+    </div>
+    <div class="flex" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="saveNewProc()"><i class="fas fa-save"></i> حفظ</button>
+      <button class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+    </div>
+  `);
+}
+
+async function saveNewProc() {
+  const name  = document.getElementById('pnName').value.trim();
+  const clinic= document.getElementById('pnClinic').value;
+  const price = parseFloat(document.getElementById('pnPrice').value || '0');
+  if (!name) return showToast('أدخل اسم الإجراء', 'error');
+
+  await db.from('procedures').insert({
+    name, clinic_id: clinic, default_price: price, created_by: currentUser.id
+  });
+  await loadProcedures();
+  await addAudit(currentUser, 'add', 'procedures', name, `إضافة إجراء: ${name}`);
+  showToast('تم إضافة الإجراء');
+  closeModal();
+  viewSettings();
+}
+
+async function toggleProc(id, isActive) {
+  await db.from('procedures').update({ is_active: !isActive }).eq('id', id);
+  await loadProcedures();
+  showToast(isActive ? 'تم إخفاء الإجراء' : 'تم إظهار الإجراء');
+  viewSettings();
+}
+
+async function deleteProc(id, name) {
+  if (!confirm(`حذف الإجراء "${name}"؟`)) return;
+  await db.from('procedures').delete().eq('id', id);
+  await loadProcedures();
+  await addAudit(currentUser, 'delete', 'procedures', id, `حذف إجراء: ${name}`);
+  showToast('تم حذف الإجراء', 'warning');
+  viewSettings();
+}
+
+// Enter key for login
+document.getElementById('lgPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('lgUser').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>
